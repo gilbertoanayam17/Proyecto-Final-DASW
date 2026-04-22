@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendorx - Principiante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/monthly_view.css">
+    
+</head>
+<body>
+
+    <nav class="navbar navbar-custom px-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center" style="width: 260px;">
+            <i class="bi bi-calendar-event fs-3 me-2"></i>
+            <span class="fs-4 fw-bold">Calendorx</span>
+        </div>
+        
+        <div class="d-flex align-items-center">
+            <a href="#" class="text-decoration-none text-white me-4 d-flex align-items-center">
+                <i class="bi bi-search me-1"></i> Buscar
+            </a>
+            <div class="d-flex align-items-center me-4 text-white">
+                <i class="bi bi-person fs-5 me-2"></i>
+                <span class="fw-medium">Nombre del usuario xd</span>
+            </div>
+            <button class="btn btn-logout d-flex align-items-center rounded-pill border-0 px-3 py-2">
+                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+            </button>
+        </div>
+    </nav>
+
+    <div class="d-flex">
+        <aside class="sidebar p-4">
+            <div class="date-card mb-4 shadow-sm">
+                <div class="day-number">21</div>
+                <div class="month-year">Abril 2026</div>
+            </div>
+
+            <div class="sidebar-heading">VISTAS</div>
+            <ul class="nav flex-column mb-4">
+                <li class="nav-item">
+                    <a class="nav-link active-blue shadow-sm" href="#">
+                        <i class="bi bi-calendar3 me-3"></i> Mes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-calendar-week me-3"></i> Semana
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-calendar-day me-3"></i> Día
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-heading">FILTROS</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active-cyan shadow-sm" href="#">
+                        <i class="bi bi-funnel me-3"></i> Vista Normal
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-bell me-3"></i> Solo Recordatorios
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-heart me-3"></i> Solo Fechas Importantes
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-4 title-section">
+                <div>
+                    <h2 class="h3 mb-1">Vista Mensual</h2>
+                    <p class="text-secondary mb-0 d-flex align-items-center">
+                        <i class="bi bi-calendar2-grid text-primary me-2"></i>
+                        Mostrando todos los eventos
+                    </p>
+                </div>
+                <button class="btn btn-new-event border-0 shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Nuevo Evento
+                </button>
+            </div>
+
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <i class="bi bi-chevron-left" style="cursor: pointer;"></i>
+                    <h5 class="mb-0 fw-bold fs-4">Abril 2026</h5>
+                    <i class="bi bi-chevron-right" style="cursor: pointer;"></i>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">Dom</div>
+                    <div class="calendar-day-header">Lun</div>
+                    <div class="calendar-day-header">Mar</div>
+                    <div class="calendar-day-header">Mié</div>
+                    <div class="calendar-day-header">Jue</div>
+                    <div class="calendar-day-header">Vie</div>
+                    <div class="calendar-day-header">Sáb</div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-cell muted-day">30</div>
+                    <div class="calendar-cell muted-day">31</div>
+                    <div class="calendar-cell">1</div>
+                    <div class="calendar-cell">2</div>
+                    <div class="calendar-cell">3</div>
+                    <div class="calendar-cell">4</div>
+                    <div class="calendar-cell">5</div>
+
+                    <div class="calendar-cell">6</div>
+                    <div class="calendar-cell">7</div>
+                    <div class="calendar-cell">8</div>
+                    <div class="calendar-cell">9</div>
+                    <div class="calendar-cell">10</div>
+                    <div class="calendar-cell">11</div>
+                    <div class="calendar-cell">12</div>
+
+                    <div class="calendar-cell">13</div>
+                    <div class="calendar-cell">14</div>
+                    <div class="calendar-cell">15</div>
+                    <div class="calendar-cell">16</div>
+                    <div class="calendar-cell">17</div>
+                    <div class="calendar-cell">18</div>
+                    <div class="calendar-cell">19</div>
+
+                    <div class="calendar-cell">20</div>
+                    <div class="calendar-cell">
+                        <div class="current-day-badge shadow">21</div>
+                    </div>
+                    <div class="calendar-cell">22</div>
+                    <div class="calendar-cell">23</div>
+                    <div class="calendar-cell">24</div>
+                    <div class="calendar-cell">25</div>
+                    <div class="calendar-cell">26</div>
+
+                    <div class="calendar-cell" style="border-bottom: none;">27</div>
+                    <div class="calendar-cell" style="border-bottom: none;">28</div>
+                    <div class="calendar-cell" style="border-bottom: none;">29</div>
+                    <div class="calendar-cell" style="border-bottom: none;">30</div>
+                    <div class="calendar-cell muted-day" style="border-bottom: none;">1</div>
+                    <div class="calendar-cell muted-day" style="border-bottom: none;">2</div>
+                    <div class="calendar-cell muted-day" style="border-bottom: none;">3</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
