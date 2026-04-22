@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <title>Mi Calendario - Login</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/login.css">
+</head>
+<body class="d-flex align-items-center justify-content-center vh-100">
+
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/>
+        </svg>
+      </div>
+      <span class="brand-title">Mi Calendario</span>
+      <span class="brand-sub">Organiza tu vida con estilo</span>
+    </div>
+
+<!-- LOGIN -->
+<form id="formLogin" onsubmit="event.preventDefault(); window.location='monthly_view.html'">
+    <p class="form-title">Iniciar Sesión</p>
+    <div class="mb-3">
+        <label class="form-label-sm">Correo electrónico</label>
+        <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <input type="email" placeholder="tu@email.com" name="email" required>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label-sm">Contraseña</label>
+        <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0v2z"/></svg>
+        <input type="password" placeholder="••••••••" name="pswd" required>
+        </div>
+    </div>
+    <button type="submit" class="btn-auth">Iniciar Sesión</button>
+    <p class="switch-link">¿No tienes cuenta? <a onclick="toggleForms()">Regístrate aquí</a></p>
+</form>
+
+<!-- REGISTER -->
+<form id="formRegister" style="display:none" onsubmit="event.preventDefault(); handleRegister()">
+    <p class="form-title">Crear Cuenta</p>
+    <div class="mb-3">
+        <label class="form-label-sm">Nombre Completo</label>
+        <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg>
+        <input type="text" placeholder="Papu Nombre" name="nombre" required>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label-sm">Correo Electrónico</label>
+        <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <input type="email" placeholder="tu@email.com" name="email" required>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label-sm">Contraseña</label>
+        <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0v2z"/></svg>
+        <input type="password" placeholder="••••••••" id="regPwd" name="pswd" oninput="checkPwd()" required>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label-sm">Confirmar Contraseña</label>
+        <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0v2z"/></svg>
+        <input type="password" placeholder="••••••••" id="regConfirm" name="pswdConfirm" oninput="checkPwd()" required>
+        </div>
+        <div class="pwd-checks">
+        <div class="check-item" id="check6"><div class="check-dot"></div>Al menos 6 caracteres</div>
+        <div class="check-item" id="checkMatch"><div class="check-dot"></div>Contraseñas coinciden</div>
+        </div>
+    </div>
+    <button type="submit" class="btn-auth">Crear Cuenta</button>
+    <p class="switch-link">¿Ya tienes cuenta? <a onclick="toggleForms()">Inicia sesión aquí</a></p>
+</form>
+
+  <script>
+    function toggleForms() {
+      const login = document.getElementById('formLogin');
+      const reg = document.getElementById('formRegister');
+      if (reg.style.display === 'none') {
+        login.style.display = 'none';
+        reg.style.display = 'block';
+      } else {
+        login.style.display = 'block';
+        reg.style.display = 'none';
+      }
+    }
+    function checkPwd() {
+      const pwd = document.getElementById('regPwd').value;
+      const confirm = document.getElementById('regConfirm').value;
+      document.getElementById('check6').classList.toggle('pass', pwd.length >= 6);
+      document.getElementById('checkMatch').classList.toggle('pass', pwd === confirm && pwd.length > 0);
+    }
+    function handleRegister() {
+      const pwd = document.getElementById('regPwd').value;
+      const confirm = document.getElementById('regConfirm').value;
+      if (pwd.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+      if (pwd !== confirm) { alert('Las contraseñas no coinciden'); return; }
+      alert('¡Registro exitoso!');
+      toggleForms();
+    }
+  </script>
+</body>
+</html>
