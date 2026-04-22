@@ -18,14 +18,15 @@
         </div>
         
         <div class="d-flex align-items-center">
-            <a href="#" class="text-decoration-none text-white me-4 d-flex align-items-center">
+            <a class="text-decoration-none text-white me-4 d-flex align-items-center">
                 <i class="bi bi-search me-1"></i> Buscar
             </a>
-            <div class="d-flex align-items-center me-4 text-white">
+            <a href="user_profile.html" class="text-decoration-none text-white me-4 d-flex align-items-center">
                 <i class="bi bi-person fs-5 me-2"></i>
                 <span class="fw-medium">Nombre del usuario xd</span>
-            </div>
-            <button class="btn btn-logout d-flex align-items-center rounded-pill border-0 px-3 py-2">
+            </a>
+            <button class="btn btn-logout d-flex align-items-center rounded-pill border-0 px-3 py-2"
+                data-bs-toggle="modal" data-bs-target="#logoutModal">
                 <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
             </button>
         </div>
@@ -34,7 +35,7 @@
     <div class="d-flex">
         <aside class="sidebar p-4">
             <div class="date-card mb-4 shadow-sm">
-                <div class="day-number">21</div>
+                <div class="day-number">23</div>
                 <div class="month-year">Abril 2026</div>
             </div>
 
@@ -53,25 +54,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="daily_view.html">
                         <i class="bi bi-calendar-day me-3"></i> Día
-                    </a>
-                </li>
-            </ul>
-
-            <div class="sidebar-heading">FILTROS</div>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-funnel me-3"></i> Vista Normal
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-bell me-3"></i> Solo Recordatorios
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-heart me-3"></i> Solo Fechas Importantes
                     </a>
                 </li>
             </ul>
@@ -188,6 +170,25 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content custom-modal border-0 text-center p-3">
+                <div class="modal-body">
+                    <i class="bi bi-box-arrow-right mb-3" style="font-size: 3rem; color: #0070f3;"></i>
+                    <h5 class="fw-bold mb-2">¿Cerrar Sesión?</h5>
+                    <p class="text-secondary mb-4" style="font-size: 0.9rem;">Estás a punto de salir de tu cuenta de
+                        Calendorx.</p>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn flex-grow-1 rounded-3 fw-medium" data-bs-dismiss="modal"
+                            style="background-color: #f3f4f6; color: #374151;">Cancelar</button>
+                        <a href="login.html" class="btn text-white flex-grow-1 rounded-3 fw-medium"
+                            style="background-color: #0070f3;">Salir</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

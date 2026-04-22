@@ -1,1 +1,53 @@
+.calendar-event {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
 
+.event-important {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.event-reminder {
+    background-color: #fef3c7;
+    border-color: #fcd34d;
+    color: #92400e;
+}
+
+.event-normal {
+    background-color: #dbeafe;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.event-completed {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.event-checkbox {
+    margin: 0;
+    cursor: pointer;
+    accent-color: #374151;
+    width: 14px;
+    height: 14px;
+}
+
+.daily-event-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.daily-event-time {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
