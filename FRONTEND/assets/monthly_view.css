@@ -1,0 +1,185 @@
+body {
+	font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	background-color: #e0f2fe; 
+	overflow-x: hidden;
+	margin: 0;
+}
+
+.navbar-custom {
+	background: linear-gradient(90deg, #0099ff 0%, #0055ff 100%);
+	height: 70px;
+	color: white;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-logout {
+	background-color: white;
+	color: #0070f3;
+	font-weight: 500;
+}
+
+.btn-logout:hover {
+	background-color: #f8f9fa;
+	color: #0070f3;
+}
+
+.sidebar {
+	width: 260px;
+	height: calc(100vh - 70px); 
+	background-color: #f8fafc;
+	border-right: 1px solid #e2e8f0;
+	overflow-y: auto;
+}
+
+.date-card {
+	background-color: #e0f2fe;
+	border: 1px solid #bae6fd;
+	border-radius: 12px;
+	padding: 20px 10px;
+	text-align: center;
+}
+
+.date-card .day-number {
+	font-size: 3.5rem;
+	font-weight: 800;
+	color: #0284c7;
+	line-height: 1;
+	margin-bottom: 5px;
+}
+
+.date-card .month-year {
+	color: #334155;
+	font-weight: 500;
+	font-size: 0.95rem;
+}
+
+.nav-item .nav-link {
+	color: #334155;
+	font-weight: 500;
+	padding: 12px 16px;
+	margin-bottom: 8px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+}
+
+.nav-item .nav-link:hover {
+	background-color: #f1f5f9;
+}
+
+.nav-item .nav-link.active-blue {
+	background-color: #0284c7;
+	color: white;
+}
+
+.nav-item .nav-link.active-cyan {
+	background-color: #cffafe;
+	color: #0369a1;
+	border: 1px solid #a5f3fc;
+}
+
+.sidebar-heading {
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #0ea5e9;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-top: 1.5rem;
+	margin-bottom: 0.75rem;
+	padding-left: 8px;
+}
+
+.main-content {
+	width: calc(100% - 260px); 
+	height: calc(100vh - 70px);
+	overflow-y: auto;
+	background-color: #f0f9ff;
+}
+
+.calendar-card {
+	border-radius: 12px;
+	overflow: hidden;
+	border: none;
+	background-color: #ffffff;
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-header {
+	background-color: #1d4ed8; 
+	color: white;
+	padding: 16px 24px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-day-header {
+	text-align: center;
+	padding: 12px 0;
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: #0369a1;
+	background-color: #f0fdfa; 
+	border-bottom: 1px solid #bae6fd;
+	border-right: 1px solid #bae6fd;
+}
+
+.calendar-day-header:last-child {
+	border-right: none;
+}
+
+.calendar-cell {
+	min-height: 120px;
+	padding: 12px;
+	border-right: 1px solid #bae6fd;
+	border-bottom: 1px solid #bae6fd;
+	font-size: 0.9rem;
+	color: #1e293b;
+	font-weight: 600;
+	background-color: white;
+}
+
+.calendar-cell:nth-child(7n) {
+	border-right: none;
+}
+
+.calendar-cell.muted-day {
+	color: #cbd5e1;
+	font-weight: 400;
+}
+
+.current-day-badge {
+	background-color: #0284c7;
+	color: white;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	margin-top: -4px;
+	margin-left: -4px;
+}
+
+.btn-new-event {
+	background-color: #0284c7;
+	color: white;
+	border-radius: 8px;
+	padding: 10px 20px;
+	font-weight: 500;
+}
+
+.btn-new-event:hover {
+	background-color: #0369a1;
+	color: white;
+}
+
+.title-section h2 {
+	color: #1e3a8a;
+	font-weight: 700;
+}
