@@ -245,9 +245,24 @@ body {
     border-radius: 4px;
     border: 1px solid transparent;
     display: flex;
-    align-items: center;
+	align-items: flex-start;
     gap: 6px;
-    font-weight: 500;
+	font-weight: 400;
+}
+
+.event-text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.2;
+}
+
+.event-title {
+	font-weight: 700;
+}
+
+.event-description {
+	font-weight: 400;
+	margin-top: 2px;
 }
 
 .event-important {
