@@ -73,9 +73,15 @@ body {
 }
 
 .nav-item .nav-link.active-cyan {
-	background-color: #cffafe;
-	color: #0369a1;
-	border: 1px solid #a5f3fc;
+	background-color: #0284c7;
+	color: white;
+	border: 1px solid #0284c7;
+	box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.nav-item .nav-link.active-cyan:hover {
+	background-color: #0284c7;
+	color: white;
 }
 
 .sidebar-heading {
@@ -92,8 +98,10 @@ body {
 .main-content {
 	width: calc(100% - 260px); 
 	height: calc(100vh - 70px);
-	overflow-y: auto;
+	overflow: hidden;
 	background-color: #f0f9ff;
+	display: flex;
+	flex-direction: column;
 }
 
 .calendar-card {
@@ -102,6 +110,10 @@ body {
 	border: none;
 	background-color: #ffffff;
 	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
 }
 
 .calendar-header {
@@ -118,9 +130,14 @@ body {
 	grid-template-columns: repeat(7, 1fr);
 }
 
+.calendar-grid#calendarDays {
+	flex: 1;
+	min-height: 0;
+}
+
 .calendar-day-header {
 	text-align: center;
-	padding: 12px 0;
+	padding: 8px 0;
 	font-size: 0.85rem;
 	font-weight: 700;
 	color: #0369a1;
@@ -134,14 +151,15 @@ body {
 }
 
 .calendar-cell {
-	min-height: 120px;
-	padding: 12px;
+	padding: 6px 8px;
 	border-right: 1px solid #bae6fd;
 	border-bottom: 1px solid #bae6fd;
 	font-size: 0.9rem;
 	color: #1e293b;
 	font-weight: 600;
 	background-color: white;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
 .calendar-cell:nth-child(7n) {
@@ -239,15 +257,60 @@ body {
 
 
 .calendar-event {
-    font-size: 0.75rem;
-    padding: 4px 6px;
-    margin-top: 6px;
+    font-size: 0.7rem;
+    padding: 2px 4px;
+	padding-right: 44px;
+    margin-top: 3px;
     border-radius: 4px;
     border: 1px solid transparent;
     display: flex;
 	align-items: flex-start;
-    gap: 6px;
+    gap: 4px;
 	font-weight: 400;
+	position: relative;
+	line-height: 1.2;
+}
+
+.event-card-actions {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	display: flex;
+	gap: 4px;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.calendar-event:hover .event-card-actions {
+	opacity: 1;
+}
+
+.event-action-btn {
+	width: 22px;
+	height: 22px;
+	border: 0;
+	border-radius: 999px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.92);
+	color: #475569;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+	padding: 0;
+	line-height: 1;
+}
+
+.event-action-btn:hover {
+	transform: translateY(-1px);
+	background: #ffffff;
+}
+
+.event-action-edit {
+	color: #0284c7;
+}
+
+.event-action-delete {
+	color: #dc2626;
 }
 
 .event-text {

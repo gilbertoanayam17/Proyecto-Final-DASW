@@ -102,13 +102,14 @@
 .week-body-scroll {
     height: calc(100vh - 280px);
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: visible;
 }
 
 /* Grid cuerpo semanal */
 .week-body-grid {
     display: grid;
     grid-template-columns: 60px repeat(7, 1fr);
+    overflow: visible;
 }
 
 .week-time-cell {
@@ -130,9 +131,13 @@
     border-right: 1px solid #bae6fd;
     border-bottom: 1px solid #f1f5f9;
     background-color: white;
-    padding: 4px 6px;
+    padding: 0;
     position: relative;
     cursor: pointer;
+    overflow: visible;
+    vertical-align: top;
+    /* Permitir eventos overflow en múltiples celdas */
+    min-height: 60px;
 }
 
 .week-cell:nth-child(8n) {
@@ -148,6 +153,17 @@
     border-radius: 10px;
     padding: 6px 8px;
     align-items: flex-start;
+}
+
+.week-event-card.event-duration {
+    position: absolute;
+    top: 0;
+    left: 2px;
+    right: 2px;
+    width: calc(100% - 4px);
+    z-index: 2;
+    overflow: visible;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
 .week-event-content {
@@ -182,6 +198,8 @@
     opacity: 0;
     transition: opacity 0.15s;
     user-select: none;
+    padding: 4px 6px;
+    display: block;
 }
 
 .week-cell:hover .add-event-hint,
@@ -232,6 +250,7 @@
 .daily-body-grid {
     display: grid;
     grid-template-columns: 60px 1fr;
+    overflow: visible;
 }
 
 .daily-time-cell {
@@ -250,11 +269,26 @@
     height: 60px;
     border-bottom: 1px solid #f1f5f9;
     background-color: white;
-    padding: 6px 16px;
+    padding: 0;
     cursor: pointer;
     position: relative;
+    overflow: visible;
+    /* Permitir eventos overflow en múltiples celdas */
+    min-height: 60px;
 }
 
 .daily-event-cell:hover {
     background-color: #f0f9ff;
+}
+
+.daily-event-duration {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    right: 8px;
+    width: calc(100% - 16px);
+    z-index: 2;
+    overflow: visible;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    border-radius: 8px;
 }
