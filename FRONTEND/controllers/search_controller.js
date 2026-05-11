@@ -5,6 +5,10 @@
 // Permite buscar por texto, tipo, rango de fechas, y ordenamiento.
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── ESTADO ──────────────────────────────────────────────────────────────────────
+
+let lastSearchParams = null;
+
 // ─── INICIALIZACIÓN ──────────────────────────────────────────────────────────────
 
 // Verificar que el usuario esté autenticado
@@ -14,21 +18,24 @@ const user = requireAuth();
 if (user) {
     // Actualizar nombre de usuario en la navegación
     updateNavUser(user);
-    
+
     // Actualizar fecha de hoy en el sidebar
     updateSidebarDate();
-    
+
     // Inicializar funcionalidad de logout
     initLogout();
 
+    // Inicializar modal de edición de eventos
+    initNewEventModal(null);
+
     // ─── LISTENERS DE BÚSQUEDA ──────────────────────────────────────────────────
-    
+
     // Botón "Buscar por Rango": búsqueda por rango de fechas
     document.getElementById('btnSearchRange').addEventListener('click', searchByRange);
-    
+
     // Botón "Buscar por Texto": búsqueda de texto en título/descripción
     document.getElementById('btnSearchText').addEventListener('click', searchByText);
-    
+
     // Botón "Hoy": buscar eventos de hoy
     document.getElementById('btnSearchToday').addEventListener('click', searchToday);
 
@@ -115,14 +122,17 @@ async function doSearch(params) {
     resultsBody.innerHTML = '<p class="text-secondary p-3">Cargando...</p>';
 
     try {
-        // Realizar solicitud GET al servidor
-        const res = await fetchWithLoader(`${API_URL}/events/search?${qs}`, {
+        // Guardar parámetros para re-ejecutar después de editar
+    lastSearchParams = params;
+
+    // Realizar solicitud GET al servidor
+    const res = await fetchWithLoader(`${API_URL}/events/search?${qs}`, {
             headers: authHeaders()
         });
-        
+
         // Parsear respuesta
         const data = res.ok ? await res.json() : [];
-        
+
         // Renderizar resultados
         renderResults(data);
     } catch {
@@ -133,53 +143,86 @@ async function doSearch(params) {
 
 // ─── RENDERIZACIÓN DE RESULTADOS ────────────────────────────────────────────────
 
+const TYPE_ICON = {
+    'evento': 'bi-calendar-check',
+    'recordatorio': 'bi-bell',
+    'fecha_importante': 'bi-heart'
+};
+
+const RECUR_LABEL = {
+    'daily': 'Diaria',
+    'weekly': 'Semanal',
+    'monthly': 'Mensual',
+    'yearly': 'Anual'
+};
+
 /**
  * Renderiza los resultados de búsqueda en la página
  * @param {Array} events - Array de eventos encontrados
  */
 function renderResults(events) {
-    // Obtener elementos de resultado
     const header = document.getElementById('resultsHeader');
     const body = document.getElementById('resultsBody');
-    
-    // Actualizar header con cantidad de resultados
-    header.textContent = `Resultados (${events.length})`;
 
-    // Si no hay resultados, mostrar mensaje
+    header.innerHTML = `<i class="bi bi-list-check me-2"></i> Resultados (${events.length})`;
+
     if (events.length === 0) {
         body.innerHTML = '<p class="text-secondary p-3">No se encontraron eventos.</p>';
         return;
     }
 
-    // Limpiar cuerpo de resultados
     body.innerHTML = '';
-    
-    // Iterar sobre cada evento encontrado
+
     events.forEach(ev => {
-        // Obtener clave de fecha (YYYY-MM-DD)
         const key = eventDateKey(ev.date);
-        
-        // Parsear fecha en partes
         const [y, m, d] = key.split('-').map(Number);
-        
-        // Formatear fecha legible
         const dateStr = `${d} de ${MESES[m - 1]}, ${y}`;
-        
-        // Crear elemento div para resultado
+
+        // Hora
+        let timeStr;
+        if (!ev.start_time) {
+            timeStr = 'Todo el día';
+        } else {
+            timeStr = ev.start_time;
+            if (ev.end_time) timeStr += ` – ${ev.end_time}`;
+        }
+
+        // Recurrencia
+        let recurStr = '';
+        if (ev.recurrence && ev.recurrence !== 'none') {
+            recurStr = `Se repite: ${RECUR_LABEL[ev.recurrence] || ev.recurrence}`;
+            if (ev.recurrence_end) {
+                const [ry, rm, rd] = eventDateKey(ev.recurrence_end).split('-').map(Number);
+                recurStr += ` hasta ${rd} de ${MESES[rm - 1]}, ${ry}`;
+            }
+        }
+
+        const iconClass = TYPE_ICON[ev.type] || 'bi-calendar-event';
+        const typeClass = ev.type || 'evento';
+
         const div = document.createElement('div');
-        div.className = 'result-item';
+        div.className = 'result-item mb-2';
+        div.style.cursor = 'pointer';
         div.innerHTML = `
-            <div class="result-icon">
-                <i class="bi bi-calendar-event"></i>
+            <div class="result-icon icon-${typeClass}">
+                <i class="bi ${iconClass}"></i>
             </div>
             <div class="result-content">
                 <h4 class="result-title">${ev.title}</h4>
-                <p class="result-meta">${TYPE_LABEL[ev.type] || ev.type}</p>
+                <p class="result-meta meta-${typeClass}">${TYPE_LABEL[ev.type] || ev.type}</p>
                 <span class="result-date">${dateStr}</span>
-                ${ev.description ? `<p class="result-desc small text-secondary mt-1">${ev.description}</p>` : ''}
+                <span class="d-block small text-secondary mt-1"><i class="bi bi-clock me-1"></i>${timeStr}</span>
+                ${recurStr ? `<span class="d-block small text-secondary"><i class="bi bi-arrow-repeat me-1"></i>${recurStr}</span>` : ''}
+                ${ev.description ? `<p class="result-desc small text-secondary mt-1 mb-0">${ev.description}</p>` : ''}
             </div>`;
-        
-        // Agregar resultado al cuerpo
+
+        div.addEventListener('click', () => {
+            openEditEventModal(ev, {
+                onSaved: () => { if (lastSearchParams) doSearch(lastSearchParams); },
+                onDeleted: () => { if (lastSearchParams) doSearch(lastSearchParams); }
+            });
+        });
+
         body.appendChild(div);
     });
 }

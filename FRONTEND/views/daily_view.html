@@ -58,9 +58,9 @@
             </ul>
             <div class="sidebar-heading">FILTROS</div>
             <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link active-cyan shadow-sm" href="#" id="filterNormal"><i class="bi bi-funnel me-3"></i> Vista Normal</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" id="filterReminders"><i class="bi bi-bell me-3"></i> Solo Recordatorios</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" id="filterImportant"><i class="bi bi-heart me-3"></i> Solo Fechas Importantes</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" id="filterEvents"><i class="bi bi-calendar-check me-3"></i> Eventos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" id="filterReminders"><i class="bi bi-bell me-3"></i> Recordatorios</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" id="filterImportant"><i class="bi bi-heart me-3"></i> Fechas Importantes</a></li>
             </ul>
         </aside>
 
@@ -90,6 +90,10 @@
                     <span class="daily-day-name" id="dailyDayName">--</span>
                     <span class="daily-day-num today-num" id="dailyDayNum">--</span>
                     <span class="daily-month" id="dailyMonth">--</span>
+                </div>
+                <div class="day-all-day-row" id="dailyAllDayRow">
+                    <div class="day-all-day-gutter">todo el día</div>
+                    <div id="dailyAllDayEvents" class="day-all-day-events"></div>
                 </div>
                 <div class="week-body-scroll">
                     <div class="daily-body-grid" id="dailyBody"></div>
@@ -154,6 +158,12 @@
                         <div class="input-group">
                             <span class="input-group-text bg-white text-secondary border-end-0 rounded-start-3"><i class="bi bi-calendar-x"></i></span>
                             <input type="date" class="form-control border-start-0 ps-0 rounded-end-3" id="eventRecurEnd">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="allDayCheck">
+                            <label class="form-check-label text-secondary fw-medium" for="allDayCheck" style="font-size:.9rem;">Todo el día</label>
                         </div>
                     </div>
                     <div class="row gx-3">
@@ -277,9 +287,8 @@
         radio.addEventListener('change', updateEventTypeStyles);
         });
 
-        // Resetear al abrir el modal (por si acaso)
         document.getElementById('newEventModal').addEventListener('show.bs.modal', () => {
-        document.getElementById('btnEvent').checked = true;
+        if (eventModalState.mode === 'create') document.getElementById('btnEvent').checked = true;
         updateEventTypeStyles();
         });
     </script> 

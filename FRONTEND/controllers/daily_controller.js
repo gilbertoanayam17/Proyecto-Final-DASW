@@ -11,11 +11,14 @@
 let currentDay = new Date();
 currentDay.setHours(0, 0, 0, 0);
 
-// Filtro activo: 'all' (todos), 'recordatorio', 'fecha_importante'
-let activeFilter = 'all';
+// Filtros activos (Set vacío = mostrar todos)
+const activeFilters = new Set();
 
 // Array de eventos del día actual
 let dayEvents = [];
+
+// Drop pendiente cuando se requiere confirmación para preservar minutos
+let pendingDayDrop = null;
 
 // ─── INICIALIZACIÓN ─────────────────────────────────────────────────────────────
 
@@ -61,23 +64,20 @@ if (user) {
     });
 
     // ─── LISTENERS DE FILTROS ───────────────────────────────────────────────────
-    
-    // Botón: mostrar todos los eventos
-    document.getElementById('filterNormal').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('all'); 
+
+    document.getElementById('filterEvents').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('evento');
     });
-    
-    // Botón: mostrar solo recordatorios
-    document.getElementById('filterReminders').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('recordatorio'); 
+
+    document.getElementById('filterReminders').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('recordatorio');
     });
-    
-    // Botón: mostrar solo fechas importantes
-    document.getElementById('filterImportant').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('fecha_importante'); 
+
+    document.getElementById('filterImportant').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('fecha_importante');
     });
 
     // Cargar y renderizar eventos del día
@@ -87,19 +87,20 @@ if (user) {
 // ─── FUNCIONES DE FILTRADO ──────────────────────────────────────────────────────
 
 /**
- * Cambiar filtro activo y re-renderizar día
- * @param {string} f - Filtro a aplicar ('all', 'recordatorio', 'fecha_importante')
+ * Activa/desactiva un filtro y re-renderiza el día
+ * @param {string} f - Tipo a alternar ('evento', 'recordatorio', 'fecha_importante')
  */
-function setFilter(f) {
-    // Establecer filtro activo
-    activeFilter = f;
-    
-    // Actualizar estado visual de botones de filtro
-    document.getElementById('filterNormal').classList.toggle('active-cyan', f === 'all');
-    document.getElementById('filterReminders').classList.toggle('active-cyan', f === 'recordatorio');
-    document.getElementById('filterImportant').classList.toggle('active-cyan', f === 'fecha_importante');
-    
-    // Re-renderizar día con nuevo filtro
+function toggleFilter(f) {
+    if (activeFilters.has(f)) {
+        activeFilters.delete(f);
+    } else {
+        activeFilters.add(f);
+    }
+
+    document.getElementById('filterEvents').classList.toggle('active-cyan', activeFilters.has('evento'));
+    document.getElementById('filterReminders').classList.toggle('active-cyan', activeFilters.has('recordatorio'));
+    document.getElementById('filterImportant').classList.toggle('active-cyan', activeFilters.has('fecha_importante'));
+
     renderDay(dayEvents);
 }
 
@@ -158,8 +159,8 @@ function renderDay(events) {
     
     const today = new Date();
     
-    // Filtrar eventos según filtro activo
-    const filtered = activeFilter === 'all' ? events : events.filter(e => e.type === activeFilter);
+    // Filtrar eventos según filtros activos (vacío = mostrar todos)
+    const filtered = activeFilters.size === 0 ? events : events.filter(e => activeFilters.has(e.type));
 
     // ─── AGRUPAR POR HORA ───────────────────────────────────────────────────────
     
@@ -172,18 +173,12 @@ function renderDay(events) {
         byHour[h].push(ev);
     });
 
-    // ─── EVENTOS SIN HORA (AL TOP) ──────────────────────────────────────────────
-    
-    // Mostrar eventos sin hora específica al principio
-    if (byHour[-1]) {
-        byHour[-1].forEach(ev => {
-            const allDayCell = document.createElement('div');
-            allDayCell.className = 'daily-event-cell p-1';
-            allDayCell.appendChild(makeDailyCard(ev));
-            
-            // Agregar placeholder para hora
-            body.appendChild(document.createElement('div'));
-            body.appendChild(allDayCell);
+    // ─── EVENTOS "TODO EL DÍA" (FILA FIJA SOBRE EL SCROLL) ─────────────────────
+    const allDayContainer = document.getElementById('dailyAllDayEvents');
+    if (allDayContainer) {
+        allDayContainer.innerHTML = '';
+        (byHour[-1] || []).forEach(ev => {
+            allDayContainer.appendChild(makeAllDayCard(ev));
         });
     }
 
@@ -213,8 +208,9 @@ function renderDay(events) {
             byHour[h].forEach(ev => eventCell.appendChild(makeDailyCard(ev)));
         } else {
             // Si no hay eventos, permitir crear uno al hacer clic
+            const endHourStr = h < 23 ? String(h + 1).padStart(2, '0') + ':00' : '23:59';
             eventCell.addEventListener('click', () => {
-                openCreateEventModal({ date: toISO(currentDay), startTime: hourStr });
+                openCreateEventModal({ date: toISO(currentDay), startTime: hourStr, endTime: endHourStr });
             });
             
             // Mostrar hint de agregar evento
@@ -330,20 +326,64 @@ function makeDailyCard(ev) {
     
     // Iniciar drag
     card.addEventListener('dragstart', (e) => {
-        // Si el evento dura más de 1 hora, mostrar advertencia y cancelar drag
-        if (durationHours > 1) {
-            e.preventDefault();
-            showMultiHourDragWarning(ev, durationHours);
-            return;
-        }
-        
         e.dataTransfer.setData('eventId', ev._id);
+        e.dataTransfer.setData('eventDate', toISO(currentDay));
+        e.dataTransfer.setData('eventStartTime', ev.start_time || '');
+        e.dataTransfer.setData('eventEndTime', ev.end_time || '');
         card.style.opacity = '0.5';
     });
     
     // Finalizar drag
     card.addEventListener('dragend', () => { card.style.opacity = '1'; });
     
+    return card;
+}
+
+/**
+ * Crea una card simplificada para eventos "todo el día" en la vista diaria
+ * Usa la misma estructura que makeWeekEventCard para garantizar que múltiples
+ * eventos se apilen correctamente en el contenedor flex-column.
+ * @param {Object} ev - Datos del evento
+ * @returns {Element} Elemento DOM de la card
+ */
+function makeAllDayCard(ev) {
+    const card = document.createElement('div');
+    card.className = `calendar-event week-event-card ${TYPE_CLASS[ev.type] || 'event-normal'}`;
+    card.draggable = false;
+    card.dataset.eventId = ev._id;
+    card.style.margin = '4px';
+
+    card.innerHTML = `
+        ${getEventCheckboxMarkup(ev)}
+        <div class="week-event-content">
+            <div class="week-event-title">${ev.title}</div>
+            ${ev.description ? `<div class="week-event-subtitle">${ev.description}</div>` : ''}
+        </div>
+        <div class="event-card-actions">
+            <button type="button" class="event-action-btn event-action-edit" title="Editar evento"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="event-action-btn event-action-delete" title="Eliminar evento"><i class="bi bi-trash"></i></button>
+        </div>`;
+
+    syncEventCompletionCard(card, ev);
+    bindEventCompletionToggle(card, ev, () => fetchAndRender());
+
+    card.querySelector('.event-action-edit').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditEventModal(ev, { onSaved: () => fetchAndRender(), onDeleted: () => fetchAndRender() });
+    });
+
+    card.querySelector('.event-action-delete').addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await deleteEventById(ev._id, () => fetchAndRender());
+    });
+
+    card.addEventListener('click', (e) => {
+        if (e.target.closest('.event-card-actions') || e.target.closest('.event-checkbox')) return;
+        openEditEventModal(ev, { onSaved: () => fetchAndRender(), onDeleted: () => fetchAndRender() });
+    });
+
     return card;
 }
 
@@ -362,6 +402,9 @@ async function handleDrop(e) {
     
     // Obtener ID del evento
     const eventId = e.dataTransfer.getData('eventId');
+    const originalDate = e.dataTransfer.getData('eventDate');
+    const originalStartTime = e.dataTransfer.getData('eventStartTime');
+    const originalEndTime = e.dataTransfer.getData('eventEndTime');
     
     // Obtener nueva hora desde el atributo data del elemento drop
     const newHour = cell.dataset.hour;
@@ -369,24 +412,125 @@ async function handleDrop(e) {
     // Validar que tengamos el evento
     if (!eventId) return;
 
-    // Construir cuerpo de la solicitud con nueva fecha y hora
-    const body = { date: toISO(currentDay) };
+    const originalStartMinutes = parseTimeToMinutes(originalStartTime);
+    const originalEndMinutes = parseTimeToMinutes(originalEndTime);
+    const originalStartOffset = originalStartMinutes !== null ? (originalStartMinutes % 60) : 0;
+    const hasMinuteOffset = originalStartOffset !== 0;
 
-    // Si el evento no tiene hora, no establecer start_time (permite eventos sin hora)
-    if (newHour !== undefined) body.start_time = `${String(newHour).padStart(2,'0')}:00`;
+    if (hasMinuteOffset) {
+        pendingDayDrop = {
+            eventId,
+            newHour,
+            originalStartMinutes,
+            originalEndMinutes,
+            originalStartOffset
+        };
+        showMinuteOffsetDropWarning({
+            originalStartTime,
+            originalEndTime,
+            targetDate: toISO(currentDay),
+            targetHour: newHour,
+            originalStartOffset,
+            onEdit: () => {
+                const event = dayEvents.find(item => item._id === eventId);
+                if (event) {
+                    openEditEventModal(event, { onSaved: () => fetchAndRender(), onDeleted: () => fetchAndRender() });
+                }
+            },
+            onAccept: async () => {
+                await moveDayEvent(eventId, newHour, originalStartMinutes, originalEndMinutes, originalStartOffset);
+            }
+        });
+        return;
+    }
 
+    await moveDayEvent(eventId, newHour, originalStartMinutes, originalEndMinutes, originalStartOffset);
+}
+
+function parseTimeToMinutes(timeStr) {
+    if (!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) return null;
+    const [h, m] = timeStr.split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
+}
+
+function formatMinutesToTime(minutes) {
+    const clamped = Math.min(Math.max(minutes, 0), 1439);
+    const h = Math.floor(clamped / 60);
+    const m = clamped % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+async function moveDayEvent(eventId, newHour, originalStartMinutes, originalEndMinutes, originalStartOffset) {
     try {
-        // Enviar solicitud PATCH para actualizar la fecha del evento
-        const res = await fetchWithLoader(`${API_URL}/events/${eventId}`, {
+        const body = { date: toISO(currentDay) };
+
+        if (newHour !== undefined) {
+            const newStartMinutes = Number(newHour) * 60 + originalStartOffset;
+            body.start_time = formatMinutesToTime(newStartMinutes);
+
+            if (
+                originalStartMinutes !== null &&
+                originalEndMinutes !== null &&
+                originalEndMinutes > originalStartMinutes
+            ) {
+                const durationMinutes = originalEndMinutes - originalStartMinutes;
+                body.end_time = formatMinutesToTime(newStartMinutes + durationMinutes);
+            }
+        }
+
+        // ── Validación de conflicto de horarios ──
+        if (body.start_time && body.end_time) {
+            try {
+                const conflictRes = await fetch(`${API_URL}/events?day=${body.date}`, {
+                    headers: authHeaders()
+                });
+                if (conflictRes.ok) {
+                    const allEvents = await conflictRes.json();
+                    const conflicting = allEvents.filter(ev => {
+                        if (ev._id === eventId) return false;
+                        return eventsOverlap(body.start_time, body.end_time, ev.start_time, ev.end_time);
+                    });
+                    if (conflicting.length > 0) {
+                        const conflictNames = conflicting.map(ev => {
+                            const time = ev.start_time && ev.end_time ? `${ev.start_time} - ${ev.end_time}` : '';
+                            return `• "${ev.title}" ${time}`;
+                        }).join('\n');
+                        const proceed = confirm(
+                            `Conflicto de horario detectado!\n\nYa tienes evento(s) en ese horario:\n${conflictNames}\n\n¿Deseas mover el evento de todas formas?`
+                        );
+                        if (!proceed) return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking conflicts:', err);
+            }
+        }
+
+        // Actualización optimista: re-renderizar inmediatamente sin loader ni reset de scroll
+        const scrollEl = document.querySelector('.week-body-scroll');
+        const savedScroll = scrollEl ? scrollEl.scrollTop : 0;
+        const idx = dayEvents.findIndex(ev => ev._id === eventId);
+        if (idx !== -1) {
+            dayEvents[idx] = { ...dayEvents[idx], ...body };
+            renderDay(dayEvents);
+            if (scrollEl) scrollEl.scrollTop = savedScroll;
+        }
+
+        // PATCH en segundo plano sin loader
+        const res = await fetch(`${API_URL}/events/${eventId}`, {
             method: 'PATCH',
             headers: authHeaders(),
             body: JSON.stringify(body)
         });
-        // Si hay error, mostrar alerta
-        if (!res.ok) { alert('No se pudo mover el evento'); return; }
-        // Re-cargar y renderizar calendario
+        if (!res.ok) {
+            alert('No se pudo mover el evento');
+            fetchAndRender();
+        }
+    } catch {
+        alert('Error de conexión');
         fetchAndRender();
-    } catch { alert('Error de conexión'); }
+    }
 }
 
 /**
@@ -394,11 +538,7 @@ async function handleDrop(e) {
  * @param {Object} ev - Datos del evento
  * @param {number} durationHours - Duración del evento en horas
  */
-function showMultiHourDragWarning(ev, durationHours) {
-    // Obtener la hora de inicio
-    const startTime = ev.start_time || '00:00';
-    const startHour = parseInt(startTime.split(':')[0]);
-    
+function showMinuteOffsetDropWarning({ originalStartTime, originalEndTime, targetDate, targetHour, originalStartOffset, onAccept, onEdit }) {
     // Crear modal HTML
     const modalHTML = `
         <div class="modal fade" id="multiHourDragModal" tabindex="-1">
@@ -407,26 +547,26 @@ function showMultiHourDragWarning(ev, durationHours) {
                     <div class="modal-header bg-warning-light border-0">
                         <h5 class="modal-title fw-bold">
                             <i class="bi bi-exclamation-triangle me-2"></i>
-                            Evento Multi-hora
+                            Nota de arrastre
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-3">
-                            Este evento dura <strong>${durationHours.toFixed(1)} horas</strong> y abarca múltiples celdas horarias.
-                        </p>
+                        <p class="mb-3">Nota: este evento no inicia en hora en punto.</p>
                         <p class="mb-4">
-                            Al mover este evento mediante drag & drop, su hora de inicio se cambiará a la del horario de destino 
-                            (<strong>HH:00</strong>), lo que podría modificar la duración exacta.
+                            Hacer drop en esta celda asumirá que su hora de inicio sea la de la nueva celda, pero con los minutos que tiene el evento actualmente.
+                            Si no es lo que deseas, puedes usar el modal de edición para darle el inicio/fin que desees.
                         </p>
                         <div class="alert alert-info alert-sm mb-0" role="alert">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Se te solicita usar el modal de edición para preservar la hora exacta.</strong><br>
+                            Inicio actual: <strong>${originalStartTime || '--:--'}</strong> | Fin actual: <strong>${originalEndTime || '--:--'}</strong><br>
+                            Destino: <strong>${targetDate} ${String(targetHour).padStart(2, '0')}:00</strong> + ${String(originalStartOffset).padStart(2, '0')} min.
                         </div>
                     </div>
                     <div class="modal-footer border-top-0">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" class="btn btn-info" id="btnEditEvent" data-bs-dismiss="modal">Editar evento</button>
+                        <button type="button" class="btn btn-outline-info" id="btnEditEvent" data-bs-dismiss="modal">Editar evento</button>
+                        <button type="button" class="btn btn-info" id="btnAcceptDrop" data-bs-dismiss="modal">Aceptar</button>
                     </div>
                 </div>
             </div>
@@ -444,10 +584,11 @@ function showMultiHourDragWarning(ev, durationHours) {
     
     // Vincular botón "Editar evento"
     modalEl.querySelector('#btnEditEvent').addEventListener('click', () => {
-        openEditEventModal(ev, { 
-            onSaved: () => fetchAndRender(), 
-            onDeleted: () => fetchAndRender() 
-        });
+        if (typeof onEdit === 'function') onEdit();
+    });
+
+    modalEl.querySelector('#btnAcceptDrop').addEventListener('click', () => {
+        if (typeof onAccept === 'function') onAccept();
     });
     
     // Mostrar modal

@@ -81,6 +81,16 @@
     background: #ffffff;
 }
 
+.form-input::placeholder {
+    color: #cbd5e1;
+    opacity: 1;
+}
+
+#deleteAccountModal .form-control::placeholder {
+    color: #cbd5e1;
+    opacity: 1;
+}
+
 .btn-save-changes {
     border: 0;
     border-radius: 12px;
@@ -249,6 +259,11 @@ body.dark-mode .form-label {
 
 body.dark-mode .form-input::placeholder {
     color: #8899aa !important;
+    opacity: 1;
+}
+
+body.dark-mode #deleteAccountModal .form-control::placeholder {
+    color: #8899aa;
     opacity: 1;
 }
 

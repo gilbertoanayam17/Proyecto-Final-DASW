@@ -10,11 +10,14 @@
 // Inicio de la semana actual (lunes)
 let weekStart = getMonday(new Date());
 
-// Filtro activo: 'all' (todos), 'recordatorio', 'fecha_importante'
-let activeFilter = 'all';
+// Filtros activos (Set vacío = mostrar todos)
+const activeFilters = new Set();
 
 // Array de eventos de la semana
 let weekEvents = [];
+
+// Drop pendiente cuando se requiere confirmación para preservar minutos
+let pendingWeekDrop = null;
 
 // ─── FUNCIONES AUXILIARES ───────────────────────────────────────────────────────
 
@@ -76,23 +79,20 @@ if (user) {
     });
 
     // ─── LISTENERS DE FILTROS ───────────────────────────────────────────────────
-    
-    // Botón: mostrar todos los eventos
-    document.getElementById('filterNormal').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('all'); 
+
+    document.getElementById('filterEvents').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('evento');
     });
-    
-    // Botón: mostrar solo recordatorios
-    document.getElementById('filterReminders').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('recordatorio'); 
+
+    document.getElementById('filterReminders').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('recordatorio');
     });
-    
-    // Botón: mostrar solo fechas importantes
-    document.getElementById('filterImportant').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('fecha_importante'); 
+
+    document.getElementById('filterImportant').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('fecha_importante');
     });
 
     // Cargar y renderizar eventos de la semana
@@ -102,19 +102,20 @@ if (user) {
 // ─── FUNCIONES DE FILTRADO ──────────────────────────────────────────────────────
 
 /**
- * Cambiar filtro activo y re-renderizar semana
- * @param {string} f - Filtro a aplicar ('all', 'recordatorio', 'fecha_importante')
+ * Activa/desactiva un filtro y re-renderiza la semana
+ * @param {string} f - Tipo a alternar ('evento', 'recordatorio', 'fecha_importante')
  */
-function setFilter(f) {
-    // Establecer filtro activo
-    activeFilter = f;
-    
-    // Actualizar estado visual de botones de filtro
-    document.getElementById('filterNormal').classList.toggle('active-cyan', f === 'all');
-    document.getElementById('filterReminders').classList.toggle('active-cyan', f === 'recordatorio');
-    document.getElementById('filterImportant').classList.toggle('active-cyan', f === 'fecha_importante');
-    
-    // Re-renderizar semana con nuevo filtro
+function toggleFilter(f) {
+    if (activeFilters.has(f)) {
+        activeFilters.delete(f);
+    } else {
+        activeFilters.add(f);
+    }
+
+    document.getElementById('filterEvents').classList.toggle('active-cyan', activeFilters.has('evento'));
+    document.getElementById('filterReminders').classList.toggle('active-cyan', activeFilters.has('recordatorio'));
+    document.getElementById('filterImportant').classList.toggle('active-cyan', activeFilters.has('fecha_importante'));
+
     renderWeek(weekEvents);
 }
 
@@ -161,8 +162,8 @@ async function fetchAndRender() {
 function renderWeek(events) {
     const today = new Date();
     
-    // Filtrar eventos según filtro activo
-    const filtered = activeFilter === 'all' ? events : events.filter(e => e.type === activeFilter);
+    // Filtrar eventos según filtros activos (vacío = mostrar todos)
+    const filtered = activeFilters.size === 0 ? events : events.filter(e => activeFilters.has(e.type));
 
     // Agrupar eventos por fecha+hora usando UTC para evitar desfase
     const byDateHour = {};
@@ -201,8 +202,32 @@ function renderWeek(events) {
         header.className = `week-day-header${isToday ? ' today-header' : ''}`;
     }
 
+    // ─── FILA "TODO EL DÍA" ──────────────────────────────────────────────────────
+    const allDayRow = document.getElementById('weekAllDayRow');
+    if (allDayRow) {
+        allDayRow.innerHTML = '';
+        const gutter = document.createElement('div');
+        gutter.className = 'week-all-day-gutter';
+        gutter.textContent = 'todo el día';
+        allDayRow.appendChild(gutter);
+        for (let d = 0; d < 7; d++) {
+            const date = new Date(weekStart);
+            date.setDate(date.getDate() + d);
+            const dateKey = toISO(date);
+            const cell = document.createElement('div');
+            cell.className = 'week-all-day-cell';
+            filtered.filter(ev => eventDateKey(ev.date) === dateKey && !ev.start_time)
+                .forEach(ev => {
+                    const card = makeWeekEventCard(ev);
+                    card.draggable = false;
+                    cell.appendChild(card);
+                });
+            allDayRow.appendChild(cell);
+        }
+    }
+
     // ─── RECONSTRUIR GRID DE HORAS Y EVENTOS ────────────────────────────────────
-    
+
     // Obtener elemento del cuerpo del calendario
     const body = document.getElementById('weekBody');
     body.innerHTML = '';
@@ -244,8 +269,9 @@ function renderWeek(events) {
                 });
             } else {
                 // Si no hay eventos, permitir crear uno al hacer clic
+                const endHourStr = h < 23 ? String(h + 1).padStart(2, '0') + ':00' : '23:59';
                 cell.addEventListener('click', () => {
-                    openCreateEventModal({ date: dateKey, startTime: hourStr });
+                    openCreateEventModal({ date: dateKey, startTime: hourStr, endTime: endHourStr });
                 });
                 
                 // Mostrar hint de agregar evento
@@ -276,6 +302,17 @@ function renderWeek(events) {
         ? today.getHours() 
         : 8;
     document.querySelector('.week-body-scroll').scrollTop = scrollHour * 61;
+
+    // ─── SINCRONIZAR ANCHO DE HEADER Y ALL-DAY CON EL SCROLLBAR ────────────────
+    // El scrollbar del body reduce el ancho del contenido; compensamos con padding-right
+    const scrollEl = document.querySelector('.week-body-scroll');
+    if (scrollEl) {
+        const scrollbarWidth = scrollEl.offsetWidth - scrollEl.clientWidth;
+        const headerGrid = document.querySelector('.week-header-grid');
+        const allDayGrid = document.getElementById('weekAllDayRow');
+        if (headerGrid) headerGrid.style.paddingRight = scrollbarWidth + 'px';
+        if (allDayGrid) allDayGrid.style.paddingRight = scrollbarWidth + 'px';
+    }
 }
 
 /**
@@ -364,14 +401,10 @@ function makeWeekEventCard(ev) {
 
     // Iniciar drag
     card.addEventListener('dragstart', (e) => {
-        // Si el evento dura más de 1 hora, mostrar advertencia y cancelar drag
-        if (durationHours > 1) {
-            e.preventDefault();
-            showMultiHourDragWarning(ev, durationHours);
-            return;
-        }
-        
         e.dataTransfer.setData('eventId', ev._id);
+        e.dataTransfer.setData('eventDate', toISO(new Date(ev.date)));
+        e.dataTransfer.setData('eventStartTime', ev.start_time || '');
+        e.dataTransfer.setData('eventEndTime', ev.end_time || '');
         card.style.opacity = '0.5';
     });
     // Finalizar drag
@@ -389,30 +422,137 @@ async function handleDrop(e) {
 
     // Obtener ID del evento y nueva fecha y hora
     const eventId = e.dataTransfer.getData('eventId');
+    const originalDate = e.dataTransfer.getData('eventDate');
     const newDate = cell.dataset.date;
     const newHour = cell.dataset.hour;
+    const originalStartTime = e.dataTransfer.getData('eventStartTime');
+    const originalEndTime = e.dataTransfer.getData('eventEndTime');
 
     // Validar que tengamos ambos datos
     if (!eventId || !newDate) return;
 
-    // Si el evento no tiene hora, no establecer start_time (permite eventos sin hora)
-    const startTime = newHour !== undefined ? `${String(newHour).padStart(2,'0')}:00` : undefined;
+    const originalStartMinutes = parseTimeToMinutes(originalStartTime);
+    const originalEndMinutes = parseTimeToMinutes(originalEndTime);
+    const originalStartOffset = originalStartMinutes !== null ? (originalStartMinutes % 60) : 0;
+    const hasMinuteOffset = originalStartOffset !== 0;
 
+    if (hasMinuteOffset) {
+        pendingWeekDrop = {
+            eventId,
+            newDate,
+            newHour,
+            originalStartMinutes,
+            originalEndMinutes,
+            originalStartOffset
+        };
+        showMinuteOffsetDropWarning({
+            eventId,
+            originalDate,
+            originalStartTime,
+            originalEndTime,
+            targetDate: newDate,
+            targetHour: newHour,
+            originalStartOffset,
+            onEdit: () => {
+                const event = weekEvents.find(item => item._id === eventId);
+                if (event) {
+                    openEditEventModal(event, { onSaved: () => fetchAndRender(), onDeleted: () => fetchAndRender() });
+                }
+            },
+            onAccept: async () => {
+                await moveWeekEvent(eventId, newDate, newHour, originalStartMinutes, originalEndMinutes, originalStartOffset);
+            }
+        });
+        return;
+    }
+
+    await moveWeekEvent(eventId, newDate, newHour, originalStartMinutes, originalEndMinutes, originalStartOffset);
+}
+
+function parseTimeToMinutes(timeStr) {
+    if (!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) return null;
+    const [h, m] = timeStr.split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
+}
+
+function formatMinutesToTime(minutes) {
+    const clamped = Math.min(Math.max(minutes, 0), 1439);
+    const h = Math.floor(clamped / 60);
+    const m = clamped % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+async function moveWeekEvent(eventId, newDate, newHour, originalStartMinutes, originalEndMinutes, originalStartOffset) {
     try {
-        // Enviar solicitud PATCH para actualizar la fecha del evento
         const body = { date: newDate };
-        if (startTime) body.start_time = startTime;
-        const res = await fetchWithLoader(`${API_URL}/events/${eventId}`, {
+
+        if (newHour !== undefined) {
+            const newStartMinutes = Number(newHour) * 60 + originalStartOffset;
+            body.start_time = formatMinutesToTime(newStartMinutes);
+
+            if (
+                originalStartMinutes !== null &&
+                originalEndMinutes !== null &&
+                originalEndMinutes > originalStartMinutes
+            ) {
+                const durationMinutes = originalEndMinutes - originalStartMinutes;
+                body.end_time = formatMinutesToTime(newStartMinutes + durationMinutes);
+            }
+        }
+
+        // ── Validación de conflicto de horarios ──
+        if (body.start_time && body.end_time) {
+            try {
+                const conflictRes = await fetch(`${API_URL}/events?day=${body.date}`, {
+                    headers: authHeaders()
+                });
+                if (conflictRes.ok) {
+                    const allEvents = await conflictRes.json();
+                    const conflicting = allEvents.filter(ev => {
+                        if (ev._id === eventId) return false;
+                        return eventsOverlap(body.start_time, body.end_time, ev.start_time, ev.end_time);
+                    });
+                    if (conflicting.length > 0) {
+                        const conflictNames = conflicting.map(ev => {
+                            const time = ev.start_time && ev.end_time ? `${ev.start_time} - ${ev.end_time}` : '';
+                            return `• "${ev.title}" ${time}`;
+                        }).join('\n');
+                        const proceed = confirm(
+                            `Conflicto de horario detectado!\n\nYa tienes evento(s) en ese horario:\n${conflictNames}\n\n¿Deseas mover el evento de todas formas?`
+                        );
+                        if (!proceed) return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking conflicts:', err);
+            }
+        }
+
+        // Actualización optimista: re-renderizar inmediatamente sin loader ni reset de scroll
+        const scrollEl = document.querySelector('.week-body-scroll');
+        const savedScroll = scrollEl ? scrollEl.scrollTop : 0;
+        const idx = weekEvents.findIndex(ev => ev._id === eventId);
+        if (idx !== -1) {
+            weekEvents[idx] = { ...weekEvents[idx], ...body };
+            renderWeek(weekEvents);
+            if (scrollEl) scrollEl.scrollTop = savedScroll;
+        }
+
+        // PATCH en segundo plano sin loader
+        const res = await fetch(`${API_URL}/events/${eventId}`, {
             method: 'PATCH',
             headers: authHeaders(),
             body: JSON.stringify(body)
         });
-        // Si hay error, mostrar alerta
-        if (!res.ok) { alert('No se pudo mover el evento'); return; }
-
-        // Re-cargar y renderizar calendario
+        if (!res.ok) {
+            alert('No se pudo mover el evento');
+            fetchAndRender();
+        }
+    } catch {
+        alert('Error de conexión');
         fetchAndRender();
-    } catch { alert('Error de conexión'); }
+    }
 }
 
 /**
@@ -420,11 +560,7 @@ async function handleDrop(e) {
  * @param {Object} ev - Datos del evento
  * @param {number} durationHours - Duración del evento en horas
  */
-function showMultiHourDragWarning(ev, durationHours) {
-    // Obtener la hora de inicio
-    const startTime = ev.start_time || '00:00';
-    const startHour = parseInt(startTime.split(':')[0]);
-    
+function showMinuteOffsetDropWarning({ originalStartTime, originalEndTime, targetDate, targetHour, originalStartOffset, onAccept, onEdit }) {
     // Crear modal HTML
     const modalHTML = `
         <div class="modal fade" id="multiHourDragModal" tabindex="-1">
@@ -433,26 +569,26 @@ function showMultiHourDragWarning(ev, durationHours) {
                     <div class="modal-header bg-warning-light border-0">
                         <h5 class="modal-title fw-bold">
                             <i class="bi bi-exclamation-triangle me-2"></i>
-                            Evento Multi-hora
+                            Nota de arrastre
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-3">
-                            Este evento dura <strong>${durationHours.toFixed(1)} horas</strong> y abarca múltiples celdas horarias.
-                        </p>
+                        <p class="mb-3">Nota: este evento no inicia en hora en punto.</p>
                         <p class="mb-4">
-                            Al mover este evento mediante drag & drop, su hora de inicio se cambiará a la del horario de destino 
-                            (<strong>HH:00</strong>), lo que podría modificar la duración exacta.
+                            Hacer drop en esta celda asumirá que su hora de inicio sea la de la nueva celda, pero con los minutos que tiene el evento actualmente.
+                            Si no es lo que deseas, puedes usar el modal de edición para darle el inicio/fin que desees.
                         </p>
                         <div class="alert alert-info alert-sm mb-0" role="alert">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Recomendación:</strong> Usa el modal de edición para preservar la hora exacta.
+                            Inicio actual: <strong>${originalStartTime || '--:--'}</strong> | Fin actual: <strong>${originalEndTime || '--:--'}</strong><br>
+                            Destino: <strong>${targetDate} ${String(targetHour).padStart(2, '0')}:00</strong> + ${String(originalStartOffset).padStart(2, '0')} min.
                         </div>
                     </div>
                     <div class="modal-footer border-top-0">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" class="btn btn-info" id="btnEditEvent" data-bs-dismiss="modal">Editar evento</button>
+                        <button type="button" class="btn btn-outline-info" id="btnEditEvent" data-bs-dismiss="modal">Editar evento</button>
+                        <button type="button" class="btn btn-info" id="btnAcceptDrop" data-bs-dismiss="modal">Aceptar</button>
                     </div>
                 </div>
             </div>
@@ -470,10 +606,11 @@ function showMultiHourDragWarning(ev, durationHours) {
     
     // Vincular botón "Editar evento"
     modalEl.querySelector('#btnEditEvent').addEventListener('click', () => {
-        openEditEventModal(ev, { 
-            onSaved: () => fetchAndRender(), 
-            onDeleted: () => fetchAndRender() 
-        });
+        if (typeof onEdit === 'function') onEdit();
+    });
+
+    modalEl.querySelector('#btnAcceptDrop').addEventListener('click', () => {
+        if (typeof onAccept === 'function') onAccept();
     });
     
     // Mostrar modal

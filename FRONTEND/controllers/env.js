@@ -501,6 +501,10 @@ function clearEventModalForm() {
     if (recurEnd) recurEnd.value = '';
     if (document.getElementById('eventRecur')) document.getElementById('eventRecur').value = 'none';
     setSelectedEventType('evento');
+    const allDayEl = document.getElementById('allDayCheck');
+    if (allDayEl) allDayEl.checked = false;
+    if (startTime) { startTime.disabled = false; }
+    if (endTime) { endTime.disabled = false; }
     syncEventRecurrenceVisibility();
 }
 
@@ -526,6 +530,11 @@ function fillEventModalForm(event) {
     if (endTime) endTime.value = event.end_time || '';
     if (recurSelect) recurSelect.value = getModalRecurrenceValue(event.recurrence);
     if (recurEnd) recurEnd.value = event.recurrence_end ? eventDateKey(event.recurrence_end) : '';
+    const isAllDay = !event.start_time;
+    const allDayEl = document.getElementById('allDayCheck');
+    if (allDayEl) allDayEl.checked = isAllDay;
+    if (startTime) startTime.disabled = isAllDay;
+    if (endTime) endTime.disabled = isAllDay;
     setSelectedEventType(event.type || 'evento');
     syncEventRecurrenceVisibility();
 }
@@ -539,8 +548,10 @@ function getEventModalPayload() {
     const description = document.getElementById('eventDesc').value.trim();
     const date = document.getElementById('eventDate').value;
     const recurEnd = document.getElementById('eventRecurEnd') ? document.getElementById('eventRecurEnd').value : '';
-    const startTime = document.getElementById('startTime').value || null;
-    const endTime = document.getElementById('endTime').value || null;
+    const allDayCheckEl = document.getElementById('allDayCheck');
+    const isAllDay = allDayCheckEl ? allDayCheckEl.checked : false;
+    const startTime = !isAllDay ? (document.getElementById('startTime').value || null) : null;
+    const endTime = !isAllDay ? (document.getElementById('endTime').value || null) : null;
     const type = getSelectedEventType();
     const recurrence = getSelectedRecurrence();
 
@@ -653,8 +664,9 @@ async function submitEventModal() {
                         const time = ev.start_time && ev.end_time ? `${ev.start_time} - ${ev.end_time}` : '';
                         return `• "${ev.title}" ${time}`;
                     }).join('\n');
+                    const action = eventModalState.mode === 'edit' ? 'editar' : 'crear';
                     const proceed = confirm(
-                        `Conflicto de horario detectado!\n\nYa tienes evento(s) en ese horario:\n${conflictNames}\n\n¿Deseas crear el evento de todas formas?`
+                        `Conflicto de horario detectado!\n\nYa tienes evento(s) en ese horario:\n${conflictNames}\n\n¿Deseas ${action} el evento de todas formas?`
                     );
                     if (!proceed) return;
                 }
@@ -796,6 +808,17 @@ function initNewEventModal(onCreated) {
     }
 
     syncEventRecurrenceVisibility();
+
+    const allDayCheck = document.getElementById('allDayCheck');
+    if (allDayCheck) {
+        allDayCheck.addEventListener('change', () => {
+            const disabled = allDayCheck.checked;
+            const startTimeEl = document.getElementById('startTime');
+            const endTimeEl = document.getElementById('endTime');
+            if (startTimeEl) { startTimeEl.disabled = disabled; if (disabled) startTimeEl.value = ''; }
+            if (endTimeEl) { endTimeEl.disabled = disabled; if (disabled) endTimeEl.value = ''; }
+        });
+    }
 
     const btnSubmit = document.getElementById('btnCreateEventSubmit');
     if (!btnSubmit) return;

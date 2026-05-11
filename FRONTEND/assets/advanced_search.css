@@ -125,77 +125,50 @@
 }
 
 /* Buttons */
-.btn-quick-access {
-    background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+.btn-quick-access,
+.btn-search-range,
+.btn-search-text {
+    background: linear-gradient(90deg, var(--main-color, #0284c7) 0%, var(--accent-color, #06b6d4) 100%);
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 10px 16px;
     font-weight: 600;
-    font-size: 0.9rem;
     transition: all 0.3s ease;
-    height: 42px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.btn-quick-access:hover {
-    background: linear-gradient(90deg, #0369a1 0%, #0284c7 100%);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(2, 132, 199, 0.3);
+.btn-quick-access {
+    padding: 10px 16px;
+    font-size: 0.9rem;
 }
 
 .btn-search-range {
-    background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
     padding: 8px 16px;
-    font-weight: 600;
     font-size: 0.85rem;
-    transition: all 0.3s ease;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-search-range:hover {
-    background: linear-gradient(90deg, #0369a1 0%, #0284c7 100%);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(2, 132, 199, 0.3);
 }
 
 .btn-search-text {
-    background: linear-gradient(90deg, #334155 0%, #1e293b 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
     padding: 8px 16px;
-    font-weight: 600;
     font-size: 0.9rem;
-    transition: all 0.3s ease;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
+.btn-quick-access:hover,
+.btn-search-range:hover,
 .btn-search-text:hover {
-    background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+    background: linear-gradient(90deg, var(--accent-color, #06b6d4) 0%, var(--main-color, #0284c7) 100%);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(30, 41, 59, 0.3);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
 }
 
 /* Results */
 .result-item {
     display: flex;
     align-items: flex-start;
-    padding: 16px;
+    padding: 14px;
     background-color: #f1f5f9;
     border-radius: 8px;
     border: 1px solid #cbd5e1;
@@ -210,7 +183,6 @@
 .result-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #0099ff 0%, #0055ff 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -219,6 +191,19 @@
     font-size: 1.1rem;
     margin-right: 14px;
     flex-shrink: 0;
+}
+
+/* Colores de icono por tipo */
+.result-icon.icon-evento {
+    background: linear-gradient(135deg, #0099ff 0%, #0055ff 100%);
+}
+
+.result-icon.icon-recordatorio {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.result-icon.icon-fecha_importante {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .result-content {
@@ -234,9 +219,21 @@
 
 .result-meta {
     font-size: 0.8rem;
+    margin: 0 0 4px 0;
+    font-weight: 600;
+}
+
+/* Colores de etiqueta por tipo */
+.result-meta.meta-evento {
     color: #0284c7;
-    margin: 0 0 6px 0;
-    font-weight: 500;
+}
+
+.result-meta.meta-recordatorio {
+    color: #d97706;
+}
+
+.result-meta.meta-fecha_importante {
+    color: #dc2626;
 }
 
 .result-date {

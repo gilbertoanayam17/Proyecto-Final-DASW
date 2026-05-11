@@ -98,9 +98,10 @@
     font-weight: 700;
 }
 
-/* Scroll del cuerpo */
+/* Scroll del cuerpo — ocupa el espacio restante del flex column del calendar-card */
 .week-body-scroll {
-    height: calc(100vh - 280px);
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: visible;
 }
@@ -206,6 +207,76 @@
 .daily-event-cell:hover .add-event-hint {
     opacity: 1;
     color: #0284c7;
+}
+
+/* ===== FILA "TODO EL DÍA" - SEMANAL ===== */
+.week-all-day-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 2px solid var(--border-color, #bae6fd);
+    background: var(--bg-secondary, #f8fafc);
+    min-height: 36px;
+}
+
+.week-all-day-gutter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 0.6rem;
+    color: var(--text-secondary, #94a3b8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 4px 6px;
+    border-right: 1px solid var(--border-color, #bae6fd);
+}
+
+.week-all-day-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px;
+    border-right: 1px solid var(--border-color, #bae6fd);
+    min-height: 36px;
+}
+
+.week-all-day-cell:last-child { border-right: none; }
+
+/* ===== FILA "TODO EL DÍA" - DIARIA ===== */
+.day-all-day-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    border-bottom: 2px solid var(--border-color, #bae6fd);
+    background: var(--bg-secondary, #f8fafc);
+    min-height: 36px;
+}
+
+.day-all-day-gutter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 0.6rem;
+    color: var(--text-secondary, #94a3b8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 4px 6px;
+    border-right: 1px solid var(--border-color, #bae6fd);
+}
+
+.day-all-day-events {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px 6px;
+    min-height: 36px;
+}
+
+/* Las tarjetas dentro de la fila todo el día ocupan todo el ancho */
+.day-all-day-events > .calendar-event,
+.week-all-day-cell > .calendar-event {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ===== VISTA DIARIA ===== */

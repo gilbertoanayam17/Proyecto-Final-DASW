@@ -80,8 +80,8 @@ body.theme-sunset {
 }
 
 body.theme-midnight {
-    --main-color: #1d4ed8;
-    --accent-color: #14b8a6;
+    --main-color: #051e63;
+    --accent-color: #036a5e;
     --bg-primary: #07111f;
     --bg-secondary: #0d1b31;
     --text-primary: #eff6ff;
@@ -196,6 +196,12 @@ body.dark-mode .form-input {
 
 body.dark-mode .form-input::placeholder {
     color: #8899aa !important;
+    opacity: 1;
+}
+
+body:is(.theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .form-input::placeholder,
+body:is(.theme-neon, .theme-forest, .theme-sunset, .theme-midnight) #deleteAccountModal .form-control::placeholder {
+    color: #cbd5e1 !important;
     opacity: 1;
 }
 
@@ -677,6 +683,22 @@ body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .the
     color: #ffffff !important;
 }
 
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .week-all-day-grid,
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .day-all-day-row {
+    background: color-mix(in srgb, var(--bg-secondary) 82%, var(--main-color)) !important;
+    border-color: var(--border-color) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .week-all-day-gutter,
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .day-all-day-gutter {
+    color: var(--text-secondary) !important;
+    border-right-color: var(--border-color) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .week-all-day-cell {
+    border-right-color: var(--border-color) !important;
+}
+
 body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .week-time-cell,
 body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .week-cell,
 body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .daily-time-cell,
@@ -797,6 +819,49 @@ body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .the
     background: var(--input-bg) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-color) !important;
+}
+
+/* ── Estadísticas (stat-card) para todos los temas ── */
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .stat-card {
+    background: var(--stat-bg) !important;
+    border-color: var(--stat-border) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .stat-number {
+    color: var(--stat-text) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .stat-label {
+    color: var(--text-primary) !important;
+}
+
+/* ── Botones de búsqueda con paleta del tema ── */
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .btn-search-range,
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .btn-search-text,
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .btn-quick-access {
+    background: linear-gradient(90deg, var(--main-color) 0%, var(--accent-color) 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+}
+
+/* ── Resultados de búsqueda para todos los temas ── */
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .result-item {
+    background: color-mix(in srgb, var(--bg-secondary) 85%, var(--main-color)) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .result-item:hover {
+    background: color-mix(in srgb, var(--bg-secondary) 70%, var(--main-color)) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .result-title {
+    color: var(--text-primary) !important;
+}
+
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .result-date,
+body:is(.dark-mode, .theme-dark, .theme-neon, .theme-forest, .theme-sunset, .theme-midnight) .result-item .text-secondary {
+    color: var(--text-secondary) !important;
 }
 
 .theme-modal {

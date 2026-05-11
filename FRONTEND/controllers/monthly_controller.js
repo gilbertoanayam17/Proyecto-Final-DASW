@@ -11,8 +11,8 @@
 let currentMonth = new Date();
 currentMonth.setDate(1);
 
-// Filtro activo: 'all' (todos), 'recordatorio', 'fecha_importante'
-let activeFilter = 'all';
+// Filtros activos (Set vacío = mostrar todos)
+const activeFilters = new Set();
 
 // Array de eventos del mes actual
 let monthEvents = [];
@@ -40,23 +40,20 @@ if (user) {
     document.getElementById('eventDate').value = toISO(new Date());
 
     // ─── LISTENERS DE FILTROS ───────────────────────────────────────────────────
-    
-    // Botón: mostrar todos los eventos
-    document.getElementById('filterNormal').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('all'); 
+
+    document.getElementById('filterEvents').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('evento');
     });
-    
-    // Botón: mostrar solo recordatorios
-    document.getElementById('filterReminders').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('recordatorio'); 
+
+    document.getElementById('filterReminders').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('recordatorio');
     });
-    
-    // Botón: mostrar solo fechas importantes
-    document.getElementById('filterImportant').addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        setFilter('fecha_importante'); 
+
+    document.getElementById('filterImportant').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFilter('fecha_importante');
     });
 
     // ─── NAVEGACIÓN DE MES ──────────────────────────────────────────────────────
@@ -80,25 +77,30 @@ if (user) {
 // ─── FUNCIONES DE FILTRADO ──────────────────────────────────────────────────────
 
 /**
- * Cambiar filtro activo y re-renderizar calendario
- * @param {string} f - Filtro a aplicar ('all', 'recordatorio', 'fecha_importante')
+ * Activa/desactiva un filtro y re-renderiza el calendario
+ * @param {string} f - Tipo a alternar ('evento', 'recordatorio', 'fecha_importante')
  */
-function setFilter(f) {
-    // Establecer filtro activo
-    activeFilter = f;
-    
-    // Actualizar estado visual de botones de filtro
-    document.getElementById('filterNormal').classList.toggle('active-cyan', f === 'all');
-    document.getElementById('filterReminders').classList.toggle('active-cyan', f === 'recordatorio');
-    document.getElementById('filterImportant').classList.toggle('active-cyan', f === 'fecha_importante');
-    
-    // Actualizar texto descriptivo del filtro
-    document.getElementById('subtitleText').textContent =
-        f === 'all' ? 'Mostrando todos los eventos' :
-        f === 'recordatorio' ? 'Mostrando solo recordatorios' :
-        'Mostrando solo fechas importantes';
-    
-    // Re-renderizar calendario con nuevo filtro
+function toggleFilter(f) {
+    if (activeFilters.has(f)) {
+        activeFilters.delete(f);
+    } else {
+        activeFilters.add(f);
+    }
+
+    document.getElementById('filterEvents').classList.toggle('active-cyan', activeFilters.has('evento'));
+    document.getElementById('filterReminders').classList.toggle('active-cyan', activeFilters.has('recordatorio'));
+    document.getElementById('filterImportant').classList.toggle('active-cyan', activeFilters.has('fecha_importante'));
+
+    const subtitleEl = document.getElementById('subtitleText');
+    if (subtitleEl) {
+        subtitleEl.textContent = activeFilters.size === 0 ? 'Mostrando todos los eventos' :
+            [...activeFilters].map(t =>
+                t === 'evento' ? 'Eventos' :
+                t === 'recordatorio' ? 'Recordatorios' :
+                'Fechas Importantes'
+            ).join(' + ');
+    }
+
     renderCalendar(monthEvents);
 }
 
@@ -156,8 +158,8 @@ function renderCalendar(events) {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // Filtrar eventos según filtro activo
-    const filtered = activeFilter === 'all' ? events : events.filter(e => e.type === activeFilter);
+    // Filtrar eventos según filtros activos (vacío = mostrar todos)
+    const filtered = activeFilters.size === 0 ? events : events.filter(e => activeFilters.has(e.type));
 
     // Agrupar eventos por fecha usando UTC para evitar desfase de zona horaria
     const byDate = {};
@@ -334,6 +336,8 @@ function makeEventChip(ev) {
     chip.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('eventId', ev._id);
         e.dataTransfer.setData('originalDate', toISO(new Date(ev.date)));
+        e.dataTransfer.setData('eventStartTime', ev.start_time || '');
+        e.dataTransfer.setData('eventEndTime', ev.end_time || '');
         chip.style.opacity = '0.5';
     });
     
@@ -352,36 +356,45 @@ function makeEventChip(ev) {
  */
 async function handleDrop(e) {
     e.preventDefault();
-    
-    // Remover estilo de drag over
+
     const cell = e.currentTarget;
     cell.classList.remove('drag-over');
 
-    // Obtener ID del evento y nueva fecha
     const eventId = e.dataTransfer.getData('eventId');
     const newDate = cell.dataset.date;
-    
-    // Validar que tengamos ambos datos
+    const originalStartTime = e.dataTransfer.getData('eventStartTime');
+    const originalEndTime = e.dataTransfer.getData('eventEndTime');
+
     if (!eventId || !newDate) return;
 
+    const body = { date: newDate };
+    if (originalStartTime) body.start_time = originalStartTime;
+    if (originalEndTime) body.end_time = originalEndTime;
+
+    // Actualización optimista: mover el evento en el array local y re-renderizar sin loader
+    const idx = monthEvents.findIndex(ev => ev._id === eventId);
+    if (idx === -1) return;
+    const previous = { ...monthEvents[idx] };
+    monthEvents[idx] = { ...monthEvents[idx], ...body };
+    renderCalendar(monthEvents);
+
+    // PATCH en segundo plano sin loader
     try {
-        // Enviar solicitud PATCH para actualizar la fecha del evento
-        const res = await fetchWithLoader(`${API_URL}/events/${eventId}`, {
+        const res = await fetch(`${API_URL}/events/${eventId}`, {
             method: 'PATCH',
             headers: authHeaders(),
-            body: JSON.stringify({ date: newDate })
+            body: JSON.stringify(body)
         });
-        
-        // Si hay error, mostrar alerta
-        if (!res.ok) { 
-            alert('No se pudo mover el evento'); 
-            return; 
+
+        if (!res.ok) {
+            // Revertir si falla
+            monthEvents[idx] = previous;
+            renderCalendar(monthEvents);
+            alert('No se pudo mover el evento');
         }
-        
-        // Re-cargar y renderizar calendario
-        fetchAndRender();
     } catch {
-        // Error de conexión
+        monthEvents[idx] = previous;
+        renderCalendar(monthEvents);
         alert('Error de conexión');
     }
 }
