@@ -192,8 +192,8 @@ function renderWeek(events) {
         const header = document.getElementById(`day-${i}`);
         if (!header) continue;
         
-        // Verificar si es hoy
-        const isToday = sameDay(d, today);
+        // Verificar si es hoy (comparar fechas locales; sameDay() asume fecha del servidor en UTC)
+        const isToday = toISO(d) === toISO(today);
         
         // Actualizar HTML del header
         header.innerHTML = `
